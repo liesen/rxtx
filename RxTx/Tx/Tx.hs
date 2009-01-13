@@ -52,8 +52,8 @@ instance JSON RpcMessage where
   showJSON (RpcRequest message arguments tag) = let
       method' = Just . jsonString . show $ message
       arguments' = if null arguments 
-        then Nothing 
-        else Just . makeObj $ arguments
+                     then Nothing 
+                     else Just . makeObj $ arguments
       tag' = jsonString `fmap` tag
     in 
       makeObj $ map (\(key, Just value) -> (key, value)) -- Remove Just constructor
