@@ -1,18 +1,18 @@
-module RxTx.Tx.Tx where
+module Main where
 
-import Char (isSpace)
-import Control.Monad (when, liftM)
+import Data.Char (isSpace)
 import Data.List (deleteBy)
 import Data.Torrent
-import IO (bracket) 
-import Maybe
+import Data.Maybe
 import Network.Curl
-import System.Environment (getArgs)
+import System.Environment (getArgs, getProgName)
+import System.Exit
+import System.IO (hPutStrLn, stderr)
 import Text.JSON 
 import Text.JSON.String 
+import Text.Printf
 import qualified Codec.Binary.Base64.String as Base64
 import qualified Data.ByteString.Lazy.Char8 as L
-import Control.Exception (try)
 
 
 rpcURL :: String -> Int -> URLString
@@ -23,7 +23,6 @@ parseTorrentFile :: FilePath -> IO (Either String Torrent)
 parseTorrentFile path = catch (L.readFile path >>= return . readTorrent)
                               (return . Left . show)
                          
-
 validateTorrentFile :: FilePath -> IO Bool
 validateTorrentFile path = parseTorrentFile path >>= return . either (const False) (const True)
 
@@ -83,13 +82,14 @@ executeRpcRequest url request = do
 
 
 -- | Requests to begin the download of a torrent
-tx :: URLString -> FilePath -> IO ()
-tx transmission torrent = do
-    ok <- validateTorrentFile torrent
-    when ok $ do
-      request <- buildRpcRequest torrent
-      response <- executeRpcRequest transmission request
-      either print (print . flip showJSValue "") response
+tx :: URLString -> FilePath -> IO (Either String JSValue)
+tx transmission path = do
+    torrent <- parseTorrentFile path
+    case torrent of
+      Left err -> return (Left err)
+      Right _  -> do
+        request <- buildRpcRequest path 
+        executeRpcRequest transmission request
 
 
 wl500gp = rpcURL "wl500gp" 9091 -- URL of RPC service
@@ -97,6 +97,13 @@ wl500gp = rpcURL "wl500gp" 9091 -- URL of RPC service
 main = do
     args <- getArgs
     case args of
-      torrent:_ -> tx wl500gp torrent
-      _         -> return ()
+      torrent:_ -> do
+        response <- tx wl500gp torrent
+        case response of
+          Left err  -> printErr err >> exitFailure
+          Right ret -> printErr (showJSValue ret "") >> exitSuccess
+      _         -> printUsageErr >> exitFailure
+  where
+    printErr = hPutStrLn stderr
+    printUsageErr = getProgName >>= hPrintf stderr "Usage: %s <torrent>" >> printErr ""
 
