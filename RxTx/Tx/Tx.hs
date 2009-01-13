@@ -1,7 +1,6 @@
 module Main where
 
 import Data.Char (isSpace)
-import Data.List (deleteBy)
 import Data.Maybe
 import Data.Torrent
 import Network.Curl
