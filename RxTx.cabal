@@ -1,0 +1,14 @@
+name:          RxTx
+version:       0.0.0.1
+cabal-version: >= 1.2
+license:       MIT
+author:        Johan Liesén
+homepage:      http://github.com/liesen/rxtx
+build-type:    Simple
+
+executable Tx
+  build-depends: base >= 4, base64-string, bytestring >= 0.9.1.4,
+                 curl >= 1.3.3, json >= 0.3.6, torrent
+  main-is: Tx.hs
+  hs-source-dirs: RxTx/Tx
+
