@@ -17,5 +17,6 @@ Rx
 --
 The idea is to implement some simple callback functionality in (headless) 
 Transmission that sends an HTTP request when a download has finished. Rx will 
-be a simple server to receive notification when a download is completed.
+be a simple server to receive notification when a download is completed. One use
+case is to forward the message to Growl.
 
